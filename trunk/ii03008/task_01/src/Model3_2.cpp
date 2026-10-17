@@ -1,0 +1,17 @@
+#include "Model3_2.h"
+
+Model3_2::Model3_2(double b_val)
+    : Model(0.0, "Model 3.2 (Pure Constant Input Drive)"), b_coef(b_val), y_prev(0.0) {}
+
+double Model3_2::calculateStep(double u_current, double u_prev1, double u_prev2) {
+    (void)u_prev1;
+    (void)u_prev2;
+    // dy/dt = b \cdot u  ->  y_{\tau+1} = y_{\tau} + b \cdot u_{\tau}[cite: 3]
+    double y_next = y_prev + b_coef * u_current;
+    y_prev = y_next;
+    return y_next;
+}
+
+void Model3_2::reset() {
+    y_prev = 0.0;
+}

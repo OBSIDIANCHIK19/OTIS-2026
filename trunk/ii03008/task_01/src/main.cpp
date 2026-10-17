@@ -1,45 +1,84 @@
 #include <iostream>
 #include <vector>
 #include <fstream>
-#include <cmath>
 #include <iomanip>
-#include "Model1_7.h"
+#include <memory>
+#include "InputSignal.h"
+#include "Model1_8.h"
+#include "Model2_10.h"
+#include "Model3_2.h"
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 int main() {
+    // Установка кодировки UTF-8 для консоли Windows
+    #ifdef _WIN32
+    SetConsoleOutputCP(65001);
+    SetConsoleCP(65001);
+    #endif
+
     // Настройка вывода с фиксированной точкой для аккуратных чисел
     std::cout << std::fixed << std::setprecision(6);
 
     std::cout << "=========================================\n";
     std::cout << " OTIS-2026 | Лабораторная работа №1\n";
-    std::cout << " Вариант 7\n";
+    std::cout << " Вариант 8\n";
     std::cout << "=========================================\n\n";
 
     std::cout << "Выберите модель:\n";
-    std::cout << "1 - Model 1.3\n";
-    std::cout << "2 - Model 2.5\n";
-    std::cout << "3 - Model 3.7\n";
-    std::cout << "Ваш выбор: 1\n";
+    std::cout << "1 - Model 1.8 (Generalized Autoregressive Linear Model)[cite: 1]\n";
+    std::cout << "2 - Model 2.10 (Hyperbolic Tangent Smoothing)[cite: 2]\n";
+    std::cout << "3 - Model 3.2 (Pure Constant Input Drive)[cite: 3]\n";
+    std::cout << "Ваш выбор: ";
+    
+    int choice;
+    std::cin >> choice;
 
-    double a1 = 5.0, a2 = 4.0, b = 4.0;
-    std::cout << "a1 = " << a1 << "\n";
-    std::cout << "a2 = " << a2 << "\n";
-    std::cout << "b = " << b << "\n\n";
+    std::unique_ptr<Model> model;
+    
+    // Переменные для параметров
+    double a1 = 0, a2 = 0, b1 = 0, b2 = 0;
+    double a_val = 0, b_val = 0;
 
-    std::cout << "Тип входного воздействия:\n";
+    if (choice == 1) {
+        std::cout << "\nВведите коэффициенты a1, a2, b1, b2 через пробел: ";
+        std::cin >> a1 >> a2 >> b1 >> b2;
+        model = std::make_unique<Model1_8>(a1, a2, b1, b2);
+    } else if (choice == 2) {
+        std::cout << "\nВведите коэффициенты a, b через пробел: ";
+        std::cin >> a_val >> b_val;
+        model = std::make_unique<Model2_10>(a_val, b_val);
+    } else {
+        std::cout << "\nВведите коэффициент b: ";
+        std::cin >> b_val;
+        model = std::make_unique<Model3_2>(b_val);
+    }
+
+    std::cout << "\nТип входного воздействия:\n";
     std::cout << "1 - ступенчатое\n";
     std::cout << "2 - импульсное\n";
     std::cout << "3 - гармоническое\n";
-    std::cout << "Ваш выбор: 1\n";
+    std::cout << "Ваш выбор: ";
+    
+    int sigChoice;
+    std::cin >> sigChoice;
+    
+    InputType inputType;
+    if (sigChoice == 2) inputType = InputType::Impulse;
+    else if (sigChoice == 3) inputType = InputType::Harmonic;
+    else inputType = InputType::Step;
 
     double amplitude = 5.0;
-    int steps = 4;
-    double y0 = 1.0;
+    int steps = 10;
+    double y0 = 0.0;
 
-    std::cout << "Амплитуда А = " << amplitude << "\n";
+    std::cout << "\nАмплитуда А = " << amplitude << "\n";
     std::cout << "Количество шагов n = " << steps << "\n";
     std::cout << "Начальное значение у0 = " << y0 << "\n\n";
 
-    std::cout << "Модель: Model 1.3 - Second-Order Linear Model\n\n";
+    std::cout << "Модель: " << model->getName() << "\n\n";
 
     std::cout << "      tau                 u                 y\n";
     std::cout << "---------------------------------------------\n";
@@ -48,16 +87,13 @@ int main() {
     std::vector<double> u_vec;
     std::vector<double> y_vec;
 
-    // Расчет по модели Model 1.7 (или аналогичной логике шагов)
-    double a = 0.5, b1 = 0.1, b2 = 0.2, b3 = 0.05;
-    Model1_7 model(a, b1, b2, b3);
     double current_y = y0;
     double u_prev1 = 0.0, u_prev2 = 0.0;
 
     for (int t = 0; t <= steps; ++t) {
-        double current_u = amplitude;
+        double current_u = InputSignal::getSignal(inputType, t);
         if (t > 0) {
-            current_y = model.calculateStep(current_u, u_prev1, u_prev2);
+            current_y = model->calculateStep(current_u, u_prev1, u_prev2);
         }
         u_prev2 = u_prev1;
         u_prev1 = current_u;

@@ -23,33 +23,43 @@
 
 ---
 
-## Вариант 7
-- Линейная модель: **Model 1.7**
-- Нелинейная модель: **Model 2.9**
-- Дифференциальное уравнение: **Model 3.1**
+## Вариант 8
+- Обобщенная авторегрессионная линейная модель: **Model 1.8**
+- Модель с гиперболическим сглаживанием: **Model 2.10**
+- Дифференциальная модель постоянного воздействия: **Model 3.2**
 
-## Реализованные модели
+## Математическое описание моделей
 
-### Model 1.7
-`y_{τ+1} = a·y_τ + b_1·u_τ + b_2·u_{τ-1} + b_3·u_{τ-2}`
+### Model 1.8 (Generalized Autoregressive Linear Model)
+`y(t+1) = a1*y(t) + a2*y(t-1) + b1*u(t) + b2*u(t-1)`
 
-### Model 2.9
-`y_{τ+1} = a·y_τ + b·√|u_τ| · sign(u_τ)`
+### Model 2.10 (Hyperbolic Tangent Smoothing)
+`y(t+1) = a*tanh(y(t)) + b*pow(u(t), 3)`
 
-### Model 3.1
-`dy/dt = -a · y`
+### Model 3.2 (Pure Constant Input Drive)
+`y(t+1) = y(t) + dt*(b*u(t))`
 
-## Входные воздействия
-1. Ступенчатое: `u(t) = A`
-2. Импульсное: `u(0) = A`, `u(t > 0) = 0`
-3. Гармоническое: `u(t) = A*sin(t)`
+## Исследуемые входные воздействия $u(\tau)$
+1. **Ступенчатое**: `u(tau) = A`
+2. **Импульсное**: `u(0) = A, u(tau > 0) = 0`
+3. **Гармоническое**: `u(tau) = A * sin(tau)`
 
-## ООП
-Создан абстрактный базовый класс `Model` с виртуальным методом `calculateNext()`.
-От него наследуются:
-- `Model1_7`
-- `Model2_9`
-- `Model3_1`
+## Архитектура программы (ООП)
+В основе программы лежит абстрактный класс `Model`, определяющий единый интерфейс расчёта следующего шага симуляции (`calculateStep`).
+От абстрактного класса наследуются конкретные классы моделей:
+- `Model1_8`
+- `Model2_10`
+- `Model3_2`
+
+## Функциональные возможности
+Разработанное приложение обеспечивает:
+- Диалоговый выбор одной из трёх математических моделей;
+- Интерактивный ввод коэффициентов уравнения ($a_1, a_2, b_1, b_2, a, b$);
+- Настройку параметров симуляции (тип сигнала, количество шагов, начальные условия);
+- Лаконичный вывод основных параметров и начальных результатов в консоль;
+- Автоматический экспорт полной таблицы результатов в `doc/results.csv`;
+- Автоматический запуск построения и отображения графиков переходных процессов средствами Python (`matplotlib`).
+
 
 ## Результат
 Программа:
@@ -68,33 +78,44 @@
 
 ```bat
 @echo off
-setlocal
+setlocal enabledelayedexpansion
 
 if not exist "%~dp0CMakeLists.txt" (
-    echo ERROR CMakeLists not found in this folder
+    echo ERROR CMakeLists.txt not found in this folder
     pause
     exit /b 1
 )
 
 cd /d "%~dp0"
 
-echo STARTING BUILD PROCESS
-
-echo STAGE 1 Configuration
-cmake -S . -B build
+REM Конфигурация CMake в тихом режиме (без лишних сообщений)
+cmake -S . -B build -W no-dev >nul 2>&1
 if errorlevel 1 goto error
 
-echo STAGE 2 Compilation
-cmake --build build --config Release
+REM Компиляция через MSBuild в минималистичном режиме (флаг /v:m - минимальный вывод)
+cmake --build build --config Release -- /nologo /v:m
 if errorlevel 1 goto error
 
-echo SUCCESS Build completed successfully
-echo Executable files are in build Release folder
+echo Сборка успешно завершена!
+echo.
+
+REM STAGE 3 Execution (Запуск программы)
+if exist "build\Release\LabWork1.exe" (
+    "build\Release\LabWork1.exe"
+) else if exist "build\LabWork1.exe" (
+    "build\LabWork1.exe"
+)
+
+REM STAGE 4 Generating Plots (если скрипт существует)
+if exist "plot_generator.py" (
+    python plot_generator.py
+)
+
 pause
 goto end
 
 :error
-echo ERROR Build failed
+echo [ОШИБКА] Сборка прервана с ошибкой.
 pause
 exit /b 1
 
@@ -111,7 +132,7 @@ endlocal
 При запуске исполняемого файла мы получаем результат файл.csv, после чего автоматически запускается plot_generator.py для визуализации ответа:
 
 ## Демострация ступенчатого воздействия
-![Результат выполнения файла plot_generator.py](plot.png)
+![Результат выполнения файла plot_generator.py](plot1.png)
 ## Демострация импульсного воздействия
 ![](plot2.png)
 ## Демострация гармонического воздействия
@@ -122,26 +143,29 @@ endlocal
 classDiagram
     class Model {
         <<abstract>>
-        +calculateNext(y, yPrev, u, dt) double
-        +getName() const char*
+        +calculateStep(u_current, u_prev1, u_prev2) double
+        +getName() string
     }
-    class Model1_7 {
-        -a double
+    class Model1_8 {
+        -a1 double
+        -a2 double
         -b1 double
         -b2 double
-        -b3 double
-        +calculateNext(...) double
+        -y_prev1 double
+        -y_prev2 double
+        +calculateStep(...) double
     }
-    class Model2_9 {
+    class Model2_10 {
         -a double
         -b double
-        +calculateNext(...) double
-        -sign(x) double
+        -y_prev double
+        +calculateStep(...) double
     }
-    class Model3_1 {
-        -a double
-        +calculateNext(...) double
+    class Model3_2 {
+        -b double
+        -y_prev double
+        +calculateStep(...) double
     }
-    Model <|-- Model1_7
-    Model <|-- Model2_9
-    Model <|-- Model3_1
+    Model <|-- Model1_8
+    Model <|-- Model2_10
+    Model <|-- Model3_2

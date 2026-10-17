@@ -1,12 +1,12 @@
 #pragma once
 #include "Model.h"
 
-class Model3_1 : public Model {
+class Model3_2 : public Model {
 private:
-    double y_current;
-    double dt;
+    double b_coef;
+    double y_prev;
 public:
-    Model3_1(double a_val, double dt_val = 0.1);
+    Model3_2(double b_val);
     double calculateStep(double u_current, double u_prev1, double u_prev2) override;
     void reset() override;
 };
