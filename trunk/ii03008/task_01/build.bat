@@ -1,44 +1,46 @@
 @echo off
-setlocal enabledelayedexpansion
+chcp 65001 > nul
+setlocal
+cd /d "%~dp0"
 
-if not exist "%~dp0CMakeLists.txt" (
-    echo ERROR CMakeLists.txt not found in this folder
+if not exist "CMakeLists.txt" (
+    echo [ERROR] CMakeLists.txt not found in:
+    echo %CD%
     pause
     exit /b 1
 )
 
-cd /d "%~dp0"
-
-REM Конфигурация CMake в тихом режиме (без лишних сообщений)
-cmake -S . -B build -W no-dev >nul 2>&1
+echo [1/2] Configuring project...
+cmake -S . -B build -Wno-dev
 if errorlevel 1 goto error
 
-REM Компиляция через MSBuild в минималистичном режиме (флаг /v:m - минимальный вывод)
-cmake --build build --config Release -- /nologo /v:m
-if errorlevel 1 goto error
-
-echo Сборка успешно завершена!
 echo.
+echo [2/2] Building project...
+cmake --build build --config Release
+if errorlevel 1 goto error
 
-REM STAGE 3 Execution (Запуск программы)
+echo.
+echo Build completed successfully.
+
 if exist "build\Release\LabWork1.exe" (
     "build\Release\LabWork1.exe"
 ) else if exist "build\LabWork1.exe" (
     "build\LabWork1.exe"
+) else (
+    echo [WARNING] LabWork1.exe was not found.
 )
 
-REM STAGE 4 Generating Plots (если скрипт существует)
 if exist "plot_generator.py" (
+    echo.
+    echo Generating plots...
     python plot_generator.py
 )
 
 pause
-goto end
+exit /b 0
 
 :error
-echo [ОШИБКА] Сборка прервана с ошибкой.
+echo.
+echo [ERROR] Build failed. Read the error above.
 pause
 exit /b 1
-
-:end
-endlocal
