@@ -33,14 +33,18 @@ int main() {
     std::cout << "3 - Model 3.2 (Pure Constant Input Drive)[cite: 3]\n";
     std::cout << "Ваш выбор: ";
     
-    int choice;
+    int choice = 0;
     std::cin >> choice;
 
     std::unique_ptr<Model> model;
     
     // Переменные для параметров
-    double a1 = 0, a2 = 0, b1 = 0, b2 = 0;
-    double a_val = 0, b_val = 0;
+    double a1 = 0.0;
+    double a2 = 0.0;
+    double b1 = 0.0;
+    double b2 = 0.0;
+    double a_val = 0.0;
+    double b_val = 0.0;
 
     if (choice == 1) {
         std::cout << "\nВведите коэффициенты a1, a2, b1, b2 через пробел: ";
@@ -62,13 +66,15 @@ int main() {
     std::cout << "3 - гармоническое\n";
     std::cout << "Ваш выбор: ";
     
-    int sigChoice;
+    int sigChoice = 0;
     std::cin >> sigChoice;
     
-    InputType inputType;
-    if (sigChoice == 2) inputType = InputType::Impulse;
-    else if (sigChoice == 3) inputType = InputType::Harmonic;
-    else inputType = InputType::Step;
+    InputType inputType = InputType::Step;
+    if (sigChoice == 2) {
+        inputType = InputType::Impulse;
+    } else if (sigChoice == 3) {
+        inputType = InputType::Harmonic;
+    }
 
     double amplitude = 5.0;
     int steps = 10;
@@ -88,7 +94,8 @@ int main() {
     std::vector<double> y_vec;
 
     double current_y = y0;
-    double u_prev1 = 0.0, u_prev2 = 0.0;
+    double u_prev1 = 0.0;
+    double u_prev2 = 0.0;
 
     for (int t = 0; t <= steps; ++t) {
         double current_u = InputSignal::getSignal(inputType, t);
@@ -102,7 +109,7 @@ int main() {
         u_vec.push_back(current_u);
         y_vec.push_back(current_y);
 
-        std::cout << std::setw(9) << (double)t << "    " 
+        std::cout << std::setw(9) << static_cast<double>(t) << "    " 
                   << std::setw(10) << current_u << "    " 
                   << std::setw(10) << current_y << "\n";
     }

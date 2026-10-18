@@ -2,17 +2,21 @@
 #include <string>
 
 enum class InputType {
-    Step,       // —ÚÛÂÌ˜‡ÚÓÂ (u_tau = const)
-    Impulse,    // »ÏÔÛÎ¸ÒÌÓÂ (u_0 = 1, u_{tau>0} = 0)
-    Harmonic    // √‡ÏÓÌË˜ÂÒÍÓÂ (u_tau = sin(tau))
+    Step,       // –°—Ç—É–ø–µ–Ω—á–∞—Ç–æ–µ (u_tau = const)
+    Impulse,    // –ò–º–ø—É–ª—å—Å–Ω–æ–µ (u_0 = 1, u_{tau>0} = 0)
+    Harmonic    // –ì–∞—Ä–º–æ–Ω–∏—á–µ—Å–∫–æ–µ (u_tau = sin(tau))
 };
 
 class Model {
-protected:
+private:
     double a;
     std::string name;
+
+protected:
+    double getA() const { return a; }
+
 public:
-    Model(double a_val, std::string model_name) : a(a_val), name(model_name) {}
+    Model(double a_val, const std::string& model_name) : a(a_val), name(model_name) {}
     virtual ~Model() = default;
 
     virtual double calculateStep(double u_current, double u_prev1, double u_prev2) = 0;
