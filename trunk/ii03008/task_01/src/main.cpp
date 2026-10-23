@@ -24,9 +24,9 @@ int main() {
     std::cout << "=========================================\n\n";
 
     std::cout << "Выберите модель:\n";
-    std::cout << "1 - Model 1.8 (Generalized Autoregressive Linear Model)[cite: 1]\n";
-    std::cout << "2 - Model 2.10 (Hyperbolic Tangent Smoothing)[cite: 2]\n";
-    std::cout << "3 - Model 3.2 (Pure Constant Input Drive)[cite: 3]\n";
+    std::cout << "1 - Model 1.8 (Generalized Autoregressive Linear Model)\n";
+    std::cout << "2 - Model 2.10 (Hyperbolic Tangent Smoothing)\n";
+    std::cout << "3 - Model 3.2 (Pure Constant Input Drive)\n";
     std::cout << "Ваш выбор: ";
     
     int choice = 0;
@@ -96,20 +96,12 @@ int main() {
     std::vector<double> u_vec;
     std::vector<double> y_vec;
 
-    double current_y = y0;
     double u_prev1 = 0.0;
     double u_prev2 = 0.0;
 
-    // Цикл от 1 до steps включительно
     for (int t = 1; t <= steps; ++t) {
         double current_u = InputSignal::getSignal(inputType, t, amplitude);
-        
-        // Для первого шага (t = 1) расчет по модели или начальное значение
-        if (t == 1) {
-            current_y = model->calculateStep(current_u, u_prev1, u_prev2);
-        } else {
-            current_y = model->calculateStep(current_u, u_prev1, u_prev2);
-        }
+        double current_y = model->calculateStep(current_u, u_prev1, u_prev2);
         
         u_prev2 = u_prev1;
         u_prev1 = current_u;
@@ -118,7 +110,6 @@ int main() {
         u_vec.push_back(current_u);
         y_vec.push_back(current_y);
 
-        // Вывод без лишних нулей для tau (как целое число) и с аккуратной точностью для значений
         std::cout << std::left 
                   << std::setw(14) << t 
                   << std::setw(16) << std::defaultfloat << current_u 
