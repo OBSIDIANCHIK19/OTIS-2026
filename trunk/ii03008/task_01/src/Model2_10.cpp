@@ -2,7 +2,7 @@
 #include <cmath>
 
 Model2_10::Model2_10(double a_val, double b_val)
-    : Model(a_val, "Model 2.10 (Hyperbolic Tangent Smoothing)"), b_coef(b_val) {}
+    : Model(a_val, "Model 2.10 (Hyperbolic Tangent Smoothing)[cite: 2]"), b_coef(b_val) {}
 
 double Model2_10::calculateStep(double u_current, double u_prev1, double u_prev2) {
     (void)u_prev1;

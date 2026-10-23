@@ -3,5 +3,5 @@
 
 class InputSignal {
 public:
-    static double getSignal(InputType type, int tau);
+    static double getSignal(InputType type, int tau, double amplitude);
 };

@@ -2,9 +2,9 @@
 #include <string>
 
 enum class InputType {
-    Step,       // Ступенчатое (u_tau = const)
-    Impulse,    // Импульсное (u_0 = 1, u_{tau>0} = 0)
-    Harmonic    // Гармоническое (u_tau = sin(tau))
+    Step,       
+    Impulse,    
+    Harmonic    
 };
 
 class Model {

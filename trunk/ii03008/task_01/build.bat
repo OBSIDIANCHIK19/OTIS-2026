@@ -1,46 +1,45 @@
 @echo off
 chcp 65001 > nul
-setlocal
-cd /d "%~dp0"
 
-if not exist "CMakeLists.txt" (
-    echo [ERROR] CMakeLists.txt not found in:
-    echo %CD%
+if exist build (
+    rmdir /q /s build
+)
+
+echo [1/2] Configuring project...
+cmake -B build -S . > nul 2>&1
+
+echo [2/2] Building project...
+cmake --build build --config Release > nul 2>&1
+
+set "EXE_PATH="
+if exist "build\src\Release\LabWork1.exe" (
+    set "EXE_PATH=build\src\Release\LabWork1.exe"
+) else if exist "build\src\Debug\LabWork1.exe" (
+    set "EXE_PATH=build\src\Debug\LabWork1.exe"
+) else if exist "build\Release\LabWork1.exe" (
+    set "EXE_PATH=build\Release\LabWork1.exe"
+) else if exist "build\Debug\LabWork1.exe" (
+    set "EXE_PATH=build\Debug\LabWork1.exe"
+)
+
+if defined EXE_PATH (
+    "%EXE_PATH%"
+) else (
+    echo [ERROR] LabWork1.exe not found!
     pause
     exit /b 1
 )
 
-echo [1/2] Configuring project...
-cmake -S . -B build -Wno-dev
-if errorlevel 1 goto error
-
 echo.
-echo [2/2] Building project...
-cmake --build build --config Release
-if errorlevel 1 goto error
-
-echo.
-echo Build completed successfully.
-
-if exist "build\Release\LabWork1.exe" (
-    "build\Release\LabWork1.exe"
-) else if exist "build\LabWork1.exe" (
-    "build\LabWork1.exe"
-) else (
-    echo [WARNING] LabWork1.exe was not found.
+echo Generating plots...
+if exist plot_generator.py (
+    start /b python plot_generator.py
+) else if exist doc\plot_generator.py (
+    start /b doc\plot_generator.py
 )
 
-if exist "plot_generator.py" (
-    echo.
-    echo Generating plots...
-    python plot_generator.py
-)
-
-pause
-exit /b 0
-
-:error
 echo.
-echo [ERROR] Build failed. Read the error above.
-pause
-exit /b 1
+echo ==========================================
+echo Program successfully completed.
+echo ==========================================
+cmd /k

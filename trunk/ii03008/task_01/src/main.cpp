@@ -13,14 +13,10 @@
 #endif
 
 int main() {
-    // Установка кодировки UTF-8 для консоли Windows
     #ifdef _WIN32
     SetConsoleOutputCP(65001);
     SetConsoleCP(65001);
     #endif
-
-    // Настройка вывода с фиксированной точкой для аккуратных чисел
-    std::cout << std::fixed << std::setprecision(6);
 
     std::cout << "=========================================\n";
     std::cout << " OTIS-2026 | Лабораторная работа №1\n";
@@ -38,7 +34,6 @@ int main() {
 
     std::unique_ptr<Model> model;
     
-    // Переменные для параметров
     double a1 = 0.0;
     double a2 = 0.0;
     double b1 = 0.0;
@@ -47,16 +42,20 @@ int main() {
     double b_val = 0.0;
 
     if (choice == 1) {
-        std::cout << "\nВведите коэффициенты a1, a2, b1, b2 через пробел: ";
-        std::cin >> a1 >> a2 >> b1 >> b2;
+        std::cout << "\nВведите коэффициенты по одному:\n";
+        std::cout << "Введите a1: "; std::cin >> a1;
+        std::cout << "Введите a2: "; std::cin >> a2;
+        std::cout << "Введите b1: "; std::cin >> b1;
+        std::cout << "Введите b2: "; std::cin >> b2;
         model = std::make_unique<Model1_8>(a1, a2, b1, b2);
     } else if (choice == 2) {
-        std::cout << "\nВведите коэффициенты a, b через пробел: ";
-        std::cin >> a_val >> b_val;
+        std::cout << "\nВведите коэффициенты по одному:\n";
+        std::cout << "Введите a: "; std::cin >> a_val;
+        std::cout << "Введите b: "; std::cin >> b_val;
         model = std::make_unique<Model2_10>(a_val, b_val);
     } else {
-        std::cout << "\nВведите коэффициент b: ";
-        std::cin >> b_val;
+        std::cout << "\nВведите коэффициент по одному:\n";
+        std::cout << "Введите b: "; std::cin >> b_val;
         model = std::make_unique<Model3_2>(b_val);
     }
 
@@ -76,18 +75,22 @@ int main() {
         inputType = InputType::Harmonic;
     }
 
-    double amplitude = 5.0;
+    double amplitude = 1.0;
     int steps = 10;
     double y0 = 0.0;
 
-    std::cout << "\nАмплитуда А = " << amplitude << "\n";
-    std::cout << "Количество шагов n = " << steps << "\n";
-    std::cout << "Начальное значение у0 = " << y0 << "\n\n";
+    std::cout << "\nВведите параметры моделирования:\n";
+    std::cout << "Амплитуда A: "; std::cin >> amplitude;
+    std::cout << "Количество шагов n: "; std::cin >> steps;
+    std::cout << "Начальное значение y0: "; std::cin >> y0;
 
-    std::cout << "Модель: " << model->getName() << "\n\n";
+    std::cout << "\nМодель: " << model->getName() << "\n\n";
 
-    std::cout << "      tau                 u                 y\n";
-    std::cout << "---------------------------------------------\n";
+    std::cout << std::left 
+              << std::setw(14) << "tau" 
+              << std::setw(16) << "u" 
+              << std::setw(16) << "y" << "\n";
+    std::cout << "----------------------------------------------\n";
 
     std::vector<double> tau_vec;
     std::vector<double> u_vec;
@@ -97,11 +100,17 @@ int main() {
     double u_prev1 = 0.0;
     double u_prev2 = 0.0;
 
-    for (int t = 0; t <= steps; ++t) {
-        double current_u = InputSignal::getSignal(inputType, t);
-        if (t > 0) {
+    // Цикл от 1 до steps включительно
+    for (int t = 1; t <= steps; ++t) {
+        double current_u = InputSignal::getSignal(inputType, t, amplitude);
+        
+        // Для первого шага (t = 1) расчет по модели или начальное значение
+        if (t == 1) {
+            current_y = model->calculateStep(current_u, u_prev1, u_prev2);
+        } else {
             current_y = model->calculateStep(current_u, u_prev1, u_prev2);
         }
+        
         u_prev2 = u_prev1;
         u_prev1 = current_u;
 
@@ -109,12 +118,13 @@ int main() {
         u_vec.push_back(current_u);
         y_vec.push_back(current_y);
 
-        std::cout << std::setw(9) << static_cast<double>(t) << "    " 
-                  << std::setw(10) << current_u << "    " 
-                  << std::setw(10) << current_y << "\n";
+        // Вывод без лишних нулей для tau (как целое число) и с аккуратной точностью для значений
+        std::cout << std::left 
+                  << std::setw(14) << t 
+                  << std::setw(16) << std::defaultfloat << current_u 
+                  << std::setw(16) << std::defaultfloat << current_y << "\n";
     }
 
-    // Сохранение результатов в results.csv внутри папки doc
     std::ofstream outFile("doc/results.csv");
     outFile << "tau,u,y\n";
     for (size_t i = 0; i < tau_vec.size(); ++i) {
@@ -122,7 +132,8 @@ int main() {
     }
     outFile.close();
 
-    std::cout << "\nРезультаты сохранены в results.csv\n";
+    std::cout << "\nРезультаты сохранены в doc/results.csv\n";
+    std::cout << "Генерация графиков...\n";
 
     return 0;
 }
