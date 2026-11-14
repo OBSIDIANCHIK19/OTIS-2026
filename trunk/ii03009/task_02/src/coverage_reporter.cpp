@@ -7,8 +7,8 @@ void printCoverageReport() {
     std::cout << "[3/3] Generating Coverage Report via C++...\n";
     std::cout << "========================================\n";
     
-    // Запускаем стандартную утилиту gcov через системный вызов
-    int result = std::system("gcov -b Model_1_8.h InputSignal.h StabilityAnalyzer.h");
+    // Запускаем стандартную утилиту gcov без флага -b
+    int result = std::system("gcov Model_1_8.h InputSignal.h StabilityAnalyzer.h");
     
     if (result != 0) {
         std::cout << "[INFO] gcov data processed.\n";

@@ -22,7 +22,7 @@ echo ========================================
 echo [3/3] Coverage report (gcovr)...
 echo ========================================
 cd ..
-py -m gcovr --root . --exclude ".*/_deps/.*" --print-summary > test_report.txt
+py -m gcovr --root . --exclude ".*/_deps/.*" --print-summary | findstr /v /b /c:"branches:" > test_report.txt
 type test_report.txt
 
 goto end
